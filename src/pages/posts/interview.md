@@ -104,7 +104,7 @@ var inorderTraversal = function(root) {
 
 后序遍历
 
-```
+```javascript
 var postorderTraversal = function(root) {
     let res=[];
     const dfs=function(root){
@@ -152,7 +152,7 @@ var postorderTraversal = function(root) {
 
 著作权归JavaGuide(javaguide.cn)所有 基于MIT协议 原文链接：https://javaguide.cn/cs-basics/algorithms/10-classical-sorting-algorithms.html
 
-```
+```javascript
 function quickSort(arr) {
     // 递归结束条件：数组长度小于或等于1
     if (arr.length <= 1) {
@@ -702,3 +702,931 @@ const ProtectedRoute = ({ component: Component, roles, ...rest }) => (
    - 堆空间较大，受系统可用内存的限制。
 
 了解堆和栈的这些基本差异有助于优化性能，特别是在处理大量数据和深层递归函数调用时。通过有效地管理存储原始类型和对象的方式，可以减少内存使用和避免性能瓶颈。
+
+
+
+在JavaScript中，闭包（closure）是指一个函数与其词法环境的组合。当函数在其定义的环境外被调用时，仍然能够访问该环境中的变量和函数。这种特性使得闭包在JavaScript中非常强大和灵活。
+
+## 闭包
+
+### 闭包的定义与基本概念
+
+闭包是指函数能够记住并访问其词法作用域，即使函数在其词法作用域之外执行。闭包是在创建函数时被捕获的，而不是在执行函数时。
+
+### 闭包的作用
+
+1. **数据隐藏与封装**：闭包可以创建私有变量，防止外部直接访问和修改。
+2. **函数工厂**：闭包可以用来创建带有不同环境的函数，便于重用。
+3. **回调函数和事件处理**：闭包可以保持对某些变量的引用，便于在异步操作中使用。
+
+### 闭包的实例
+
+以下是一些使用闭包的典型示例：
+
+#### 示例1：数据隐藏与封装
+
+```javascript
+function createCounter() {
+    let count = 0;
+    return {
+        increment: function() {
+            count++;
+            return count;
+        },
+        decrement: function() {
+            count--;
+            return count;
+        },
+        getCount: function() {
+            return count;
+        }
+    };
+}
+
+const counter = createCounter();
+console.log(counter.increment()); // 输出: 1
+console.log(counter.increment()); // 输出: 2
+console.log(counter.getCount());  // 输出: 2
+console.log(counter.decrement()); // 输出: 1
+```
+
+在这个例子中，`count` 变量是 `createCounter` 函数的局部变量，通过返回的对象中的函数可以访问和修改这个变量。这些函数形成了一个闭包，使得 `count` 在 `createCounter` 函数执行完后仍然存在。
+
+#### 示例2：函数工厂
+
+```javascript
+function createGreeting(greeting) {
+    return function(name) {
+        return greeting + ", " + name;
+    };
+}
+
+const sayHello = createGreeting("Hello");
+const sayHi = createGreeting("Hi");
+
+console.log(sayHello("Alice")); // 输出: Hello, Alice
+console.log(sayHi("Bob"));      // 输出: Hi, Bob
+```
+
+在这个例子中，`createGreeting` 函数返回一个新的函数，该函数记住了 `greeting` 参数的值。不同的函数实例可以记住不同的 `greeting` 值，从而创建不同的问候语。
+
+#### 示例3：回调函数和事件处理
+
+```javascript
+function setupClickHandler(message) {
+    document.getElementById("myButton").addEventListener("click", function() {
+        alert(message);
+    });
+}
+
+setupClickHandler("Button was clicked!"); 
+```
+
+在这个例子中，匿名函数作为事件处理函数，形成了一个闭包，记住了 `setupClickHandler` 调用时的 `message` 参数的值。当按钮被点击时，这个闭包中的 `message` 会被正确地访问和显示。
+
+### 闭包的常见问题
+
+1. **内存泄漏**：不当使用闭包可能会导致内存泄漏，因为闭包会保持对外部环境的引用。
+2. **性能问题**：在某些情况下，大量使用闭包可能会影响性能，因为闭包会占用更多内存和计算资源。
+
+### 总结
+
+闭包是JavaScript中的一个强大概念，它允许函数访问其定义时的作用域中的变量和函数，即使在其执行环境之外。通过正确使用闭包，可以实现数据隐藏、函数工厂和复杂的回调机制，从而提高代码的灵活性和可维护性。
+
+## 防抖节流
+
+### Debounce
+
+```javascript
+function debounce(func, ms) {
+  let timeout;
+  return function() {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, arguments), ms);
+  };
+}
+```
+
+### 详细解释
+
+1. **参数**：
+   - `func`：需要防抖的函数。
+   - `ms`：时间间隔，单位是毫秒。
+2. **内部变量**：
+   - `timeout`：用于存储 `setTimeout` 返回的标识符，以便可以清除定时器。
+3. **返回的函数**：
+   - 每次调用返回的函数时，首先会调用 `clearTimeout(timeout)` 清除前一个定时器（如果存在）。这样可以保证如果在 `ms` 时间间隔内再次触发，之前的定时器会被取消。
+   - 然后，重新设置一个新的定时器 `timeout = setTimeout(() => func.apply(this, arguments), ms)`。这个定时器在 `ms` 毫秒之后执行传入的 `func` 函数。
+4. **函数执行**：
+   - `setTimeout(() => func.apply(this, arguments), ms)` 中的箭头函数会在 `ms` 毫秒之后执行 `func` 函数，并使用 `apply` 方法将当前的 `this` 上下文和参数传递给 `func`。
+   - `func.apply(this, arguments)` 确保了在防抖函数被调用时，`func` 会在正确的上下文中执行，并接收正确的参数。
+
+### 为什么这个可以实现防抖
+
+这个实现的核心在于每次调用防抖函数时都会重新设置一个定时器，并清除前一个定时器。只有在指定的时间间隔（`ms`）内没有新的调用时，定时器才会到期并执行 `func`。这样可以确保 `func` 只在事件结束后的特定时间内执行一次，而不会因为频繁触发事件而多次执行。
+
+#### 使用示例
+
+```javascript
+// 防抖函数的示例
+function onResize() {
+  console.log('Window resized');
+}
+
+window.addEventListener('resize', debounce(onResize, 300));
+```
+
+在这个示例中，当窗口大小调整事件频繁触发时，`onResize` 函数只会在调整结束后的 300 毫秒后执行一次，而不是每次触发事件时都执行。
+
+### 节流
+
+```javascript
+function throttle(func, ms) {
+
+  let isThrottled = false,
+    savedArgs,
+    savedThis;
+
+  function wrapper() {
+
+    if (isThrottled) { // (2)
+      savedArgs = arguments;
+      savedThis = this;
+      return;
+    }
+    isThrottled = true;
+
+    func.apply(this, arguments); // (1)
+
+    setTimeout(function() {
+      isThrottled = false; // (3)
+      if (savedArgs) {
+        wrapper.apply(savedThis, savedArgs);
+        savedArgs = savedThis = null;
+      }
+    }, ms);
+  }
+
+  return wrapper;
+}
+```
+
+1. 在第一次调用期间，`wrapper` 只运行 `func` 并设置冷却状态（`isThrottled = true`）。
+2. 在冷却状态下，所有调用都被保存在 `savedArgs/savedThis` 中。请注意，上下文（this）和参数（arguments）都很重要，应该被保存下来。我们需要它们来重现调用。
+3. 经过 `ms` 毫秒后，`setTimeout`中的函数被触发。冷却状态被移除（`isThrottled = false`），如果存在被忽略的调用，将使用最后一次调用保存的参数和上下文运行 `wrapper`。
+
+
+
+## 异步
+
+### 异步解决⽅案
+
+同步操作：顺序执⾏，同⼀时间只能做⼀件事情。缺点是会阻塞后⾯代码的执⾏。
+异步：指的是当前代码的执⾏作为任务放进任务队列。当程序执⾏到异步的代码时，会将该异步的代码作为任务放
+进任务队列，⽽不是推⼊主线程的调⽤栈。等主线程执⾏完之后，再去任务队列⾥执⾏对应的任务。优点是：不会
+阻塞后续代码的运⾏。
+
+#### 异步场景
+
+1. 定时任务：setTimeout、setInterval
+
+2. ⽹络请求：ajax请求、动态创建img标签的加载
+
+3. 事件监听器：addEventListener
+
+### 回调
+
+回调函数就是我们请求成功后需要执⾏的函数。
+实现了异步，但是带来⼀个⾮常严重的问题——回调地狱。
+事件发布/订阅
+
+#### Promise
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+resolve('a');
+});
+
+.then((arg) => {
+console.log(`执⾏resolve,参数是${arg}`)
+})
+.catch((arg) => {
+console.log(`执⾏reject,参数是${arg}`)
+})
+.finally(() => {
+console.log('结束promise')
+});
+Promise.reject(2)
+//.catch(err=>console.log("err1,",err))
+.then(null, err => console.log("err1,", err)) //因为是rejected状态，执⾏then的第⼆个
+callback，改变状态为fulfilled
+.then(res => {
+console.log("then1", res)
+}, null) //因为是fulfilled，于是执⾏第⼀个回调,不会去到下⼀步catch
+//.catch(err=>console.log("err2,",err))
+.then(null, err => console.log("err2,", err))
+```
+
+
+
+
+
+then实现链式操作减低代码复杂度，增强代码可读性。
+Promise对象的错误具有“冒泡”性质，会⼀直向后传递，直到被捕获为⽌。
+每个Promise都会经历的⽣命周期是：
+进⾏中（pending） - 此时代码执⾏尚未结束，所以也叫未处理的（unsettled）
+已处理（settled） - 异步代码已执⾏结束 已处理的代码会进⼊两种状态中的⼀种：
+已完成（fulfilled） - 表明异步代码执⾏成功，由resolve()触发
+已拒绝（rejected）- 遇到错误，异步代码执⾏失败 ，由reject()触发
+⽅法
+
+1. Promise.all 传⼊多个异步请求数组，若all成功，进⼊fulfilled状态，若⼀个失败，则⽴即进⼊rejected状态。
+2. Promise.allSettled 传⼊多个异步请求数组，⽆论失败还是失败，都会进⼊fulfilled状态。
+3. Promise.race 以⼀个Promise对象组成的数组作为参数，只要当数组中⼀个Promsie状态变成resolved或者
+   rejected时，就调⽤.then⽅法。
+   事件循环
+   Generator
+   promise
+
+`call` 和 `apply` 都是 JavaScript 中常用的方法，用于改变函数执行时 `this` 的指向。它们之间的主要区别在于传递参数的方式：
+
+1. **`call` 方法：**
+
+   - 语法：`function.call(thisArg, arg1, arg2, ...)`
+   - 用法：`call` 方法接受的是一系列的参数，参数列表是按顺序传递的。
+   - 示例：
+     ```javascript
+     function greet(greeting, punctuation) {
+       console.log(greeting + ', ' + this.name + punctuation);
+     }
+     const person = { name: 'Alice' };
+     greet.call(person, 'Hello', '!');
+     // 输出: Hello, Alice!
+     ```
+
+2. **`apply` 方法：**
+
+   - 语法：`function.apply(thisArg, [argsArray])`
+   - 用法：`apply` 方法接受的是一个参数数组，所有参数以数组的形式传递。
+   - 示例：
+     ```javascript
+     function greet(greeting, punctuation) {
+       console.log(greeting + ', ' + this.name + punctuation);
+     }
+     const person = { name: 'Alice' };
+     greet.apply(person, ['Hello', '!']);
+     // 输出: Hello, Alice!
+     ```
+
+### 总结
+
+- **`call`** 适用于参数数量已知且可以逐一列举的情况。
+- **`apply`** 适用于参数数量未知或已经在数组中的情况。
+
+### 实际应用场景
+
+1. **`call`**：
+   ```javascript
+   function Product(name, price) {
+     this.name = name;
+     this.price = price;
+   }
+   
+   function Food(name, price) {
+     Product.call(this, name, price);
+     this.category = 'food';
+   }
+   
+   console.log(new Food('cheese', 5));
+   // 输出: Food { name: 'cheese', price: 5, category: 'food' }
+   ```
+
+2. **`apply`**：
+   ```javascript
+   const numbers = [5, 6, 2, 3, 7];
+   
+   const max = Math.max.apply(null, numbers);
+   const min = Math.min.apply(null, numbers);
+   
+   console.log(max, min);
+   // 输出: 7 2
+   ```
+
+希望这些解释和示例能帮助你理解 `call` 和 `apply` 之间的差异。
+
+在 CSS 中，`px`, `rem`, 和 `em` 是常用的长度单位，它们用于定义元素的尺寸、间距、字体大小等。它们各自有不同的特性和应用场景：
+
+### `px` (像素)
+- **定义**: `px` 代表像素，是一个绝对单位。1 像素表示屏幕上的一个点。
+- **特点**: 绝对长度，不会随父元素或根元素的字体大小变化。
+- **优点**: 精确控制尺寸，适用于需要固定大小的元素。
+- **缺点**: 不灵活，不能根据用户设置或浏览器调整大小。
+- **示例**:
+  ```css
+  .box {
+    width: 200px;
+    height: 100px;
+  }
+  ```
+
+### `em`
+- **定义**: `em` 是相对单位，相对于当前元素的字体大小。如果没有指定，则相对于父元素的字体大小。
+- **特点**: 随父元素的字体大小变化而变化。
+- **优点**: 灵活，适合响应式设计，可以根据父元素的大小调整。
+- **缺点**: 计算复杂，容易受到父元素的影响。
+- **示例**:
+  ```css
+  .parent {
+    font-size: 16px;
+  }
+  .child {
+    font-size: 2em; /* 2 * 16px = 32px */
+  }
+  ```
+
+### `rem`
+- **定义**: `rem` 也是相对单位，相对于根元素（`<html>`）的字体大小。
+- **特点**: 不受父元素影响，只受根元素影响。
+- **优点**: 统一管理，适合全局的响应式设计，计算简单。
+- **缺点**: 需要全局统一设置根元素的字体大小。
+- **示例**:
+  ```css
+  html {
+    font-size: 16px;
+  }
+  .box {
+    font-size: 1.5rem; /* 1.5 * 16px = 24px */
+  }
+  ```
+
+### 总结
+
+- **`px`**：固定像素，不随环境变化，适用于固定尺寸。
+- **`em`**：相对当前元素的字体大小，灵活但复杂。
+- **`rem`**：相对根元素的字体大小，统一管理且计算简单。
+
+### 使用建议
+- **字体大小**：推荐使用 `rem`，这样可以通过改变根元素的字体大小来实现整体的响应式设计。
+- **内边距、外边距**：可以使用 `em` 或 `rem`，根据具体需求选择。
+- **固定尺寸**：如果需要绝对固定的尺寸，可以使用 `px`。
+
+这些单位各有优缺点，选择适合的单位可以让你的设计更灵活和响应式。
+
+前端监控报错是一项重要的工作，能够帮助开发者及时发现和解决线上问题，提高应用的稳定性和用户体验。以下是几种常用的前端监控报错方法：
+
+### 1. **`window.onerror` 事件**
+`window.onerror` 是一个全局事件处理程序，用于捕获未处理的 JavaScript 错误。它可以捕获运行时错误的信息，包括错误消息、URL、行号和列号。
+```javascript
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error(`Error: ${message}, Source: ${source}, Line: ${lineno}, Column: ${colno}, Error object: ${error}`);
+  // 发送错误信息到服务器
+  sendErrorToServer({ message, source, lineno, colno, error });
+  return false; // 阻止浏览器默认错误提示
+};
+```
+
+### 2. **`try...catch` 语句**
+使用 `try...catch` 可以捕获代码块中的同步错误，并处理这些错误或将其发送到服务器。
+```javascript
+try {
+  // 可能会抛出错误的代码
+} catch (error) {
+  console.error('Caught an error:', error);
+  // 发送错误信息到服务器
+  sendErrorToServer(error);
+}
+```
+
+### 3. **Promise 错误处理**
+使用 `.catch` 方法处理 Promise 中的错误。
+```javascript
+somePromiseFunction()
+  .then(result => {
+    // 处理结果
+  })
+  .catch(error => {
+    console.error('Promise rejected:', error);
+    // 发送错误信息到服务器
+    sendErrorToServer(error);
+  });
+```
+
+### 4. **全局未捕获的 Promise 错误**
+可以通过监听 `unhandledrejection` 事件捕获未处理的 Promise 错误。
+```javascript
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('Unhandled rejection:', event.reason);
+  // 发送错误信息到服务器
+  sendErrorToServer(event.reason);
+});
+```
+
+### 5. **前端监控工具**
+使用第三方前端监控工具，如 Sentry、LogRocket、New Relic、TrackJS 等。这些工具提供了强大的错误捕获、日志记录和分析功能，可以更方便地监控和处理前端错误。
+```javascript
+// 示例使用 Sentry
+Sentry.init({ dsn: 'https://example@sentry.io/123456' });
+
+// 捕获一个异常
+Sentry.captureException(new Error('Something went wrong'));
+```
+
+### 6. **自定义日志记录**
+实现自定义的日志记录系统，将错误信息发送到服务器端以进行存储和分析。
+```javascript
+function sendErrorToServer(error) {
+  fetch('/log', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: error.message,
+      stack: error.stack,
+      // 可以添加更多信息
+    })
+  });
+}
+```
+
+### 7. **Performance API**
+Performance API 提供了一种捕获和分析前端性能问题的方法，这对于识别和解决性能相关的错误非常有用。
+```javascript
+// 记录页面加载时间
+window.addEventListener('load', function() {
+  const performanceTiming = window.performance.timing;
+  const loadTime = performanceTiming.loadEventEnd - performanceTiming.navigationStart;
+  console.log('Page load time:', loadTime);
+  // 发送性能数据到服务器
+  sendPerformanceDataToServer(loadTime);
+});
+```
+
+### 8. **监控网络请求**
+通过拦截和监控网络请求，可以捕获与服务器交互相关的错误。
+```javascript
+// 拦截 fetch 请求
+const originalFetch = window.fetch;
+window.fetch = function() {
+  return originalFetch.apply(this, arguments)
+    .then(response => {
+      if (!response.ok) {
+        console.error('Fetch error:', response.statusText);
+        // 发送错误信息到服务器
+        sendErrorToServer({ message: response.statusText });
+      }
+      return response;
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      // 发送错误信息到服务器
+      sendErrorToServer(error);
+      throw error;
+    });
+};
+```
+
+### 9. **用户行为追踪**
+通过捕获用户行为（如点击、输入等）来重现错误，帮助开发者更好地理解问题的根源。
+```javascript
+document.addEventListener('click', function(event) {
+  const target = event.target;
+  console.log('User clicked on:', target);
+  // 记录用户行为
+  logUserAction('click', target);
+});
+```
+
+通过结合以上方法，可以构建一个全面的前端监控系统，有效捕获和处理前端错误，提高应用的稳定性和用户体验。
+
+
+
+事件委托（Event Delegation）是指将事件监听器添加到父元素上，而不是直接添加到子元素上。当事件被触发时，事件会从事件目标元素开始，沿着 DOM 树向上传播（冒泡），从而可以在父元素上检测到子元素的事件。这种方法在处理大量子元素的事件时非常有效，减少了内存占用和事件绑定的开销。
+
+### 事件委托的工作原理
+
+事件委托依赖于事件冒泡机制。事件冒泡是指事件从目标元素向上冒泡到父元素、祖父元素，直到根元素（通常是 `document`）。
+
+### 事件委托的优势
+
+1. **减少内存使用**：只需要在父元素上添加一个事件监听器，而不是在每个子元素上都添加一个监听器。
+2. **动态元素处理**：能够处理动态添加或删除的子元素，不需要重新绑定事件。
+3. **简化代码**：避免重复的事件绑定代码，使代码更简洁。
+
+### 事件委托的实现
+
+以下是一个使用事件委托的示例，展示如何在父元素上监听子元素的点击事件。
+
+#### HTML 结构
+```html
+<ul id="parent">
+  <li>Item 1</li>
+  <li>Item 2</li>
+  <li>Item 3</li>
+</ul>
+```
+
+#### JavaScript 实现
+```javascript
+document.getElementById('parent').addEventListener('click', function(event) {
+  // 检查事件目标是否是我们关心的元素
+  if (event.target && event.target.nodeName === 'LI') {
+    console.log('List item clicked:', event.target.textContent);
+    // 可以在这里添加更多逻辑，比如高亮点击的项等
+  }
+});
+```
+
+在这个例子中，我们只在 `ul` 元素（`id="parent"`）上绑定一个点击事件监听器，然后通过检查 `event.target` 确定实际被点击的 `li` 元素。
+
+### 事件委托的注意事项
+
+1. **事件冒泡**：确保使用的事件是支持冒泡的，例如 `click`、`focusin`、`keydown` 等。
+2. **性能**：虽然事件委托能减少内存占用，但在某些情况下（例如非常深的嵌套结构或频繁的事件触发），也可能带来性能问题。
+3. **事件目标**：需要小心处理 `event.target`，确保它是我们期望的元素类型。可以使用 `matches` 方法来进行更复杂的匹配。
+4. **停止冒泡**：某些情况下可能需要使用 `event.stopPropagation()` 来防止事件继续冒泡。
+
+### 进阶示例
+
+如果我们需要在多个不同类型的子元素上处理不同的事件，可以使用更复杂的条件判断或使用 `matches` 方法：
+
+```html
+<div id="parent">
+  <button class="btn">Button 1</button>
+  <button class="btn">Button 2</button>
+  <a href="#" class="link">Link 1</a>
+  <a href="#" class="link">Link 2</a>
+</div>
+```
+
+```javascript
+document.getElementById('parent').addEventListener('click', function(event) {
+  if (event.target.matches('.btn')) {
+    console.log('Button clicked:', event.target.textContent);
+  } else if (event.target.matches('.link')) {
+    event.preventDefault(); // 阻止链接的默认行为
+    console.log('Link clicked:', event.target.textContent);
+  }
+});
+```
+
+通过这种方式，可以在一个父元素上处理多种类型的子元素事件，使代码更加简洁和高效。
+
+
+
+在 JavaScript 中，千分化（也称为数字分组）是指将一个长数字格式化为带有千分位分隔符的字符串。以下是几种常用的方法来实现千分化：
+
+### 方法一：使用 `toLocaleString`
+
+`toLocaleString` 方法是最简单和推荐的方法，因为它不仅支持千分位，还支持根据不同的区域设置进行格式化。
+
+```javascript
+const number = 1234567.89;
+const formattedNumber = number.toLocaleString();
+console.log(formattedNumber); // 输出: "1,234,567.89"（根据区域设置可能不同）
+```
+
+你可以指定区域设置和格式选项：
+
+```javascript
+const number = 1234567.89;
+const formattedNumber = number.toLocaleString('en-US'); // 美式英语
+console.log(formattedNumber); // 输出: "1,234,567.89"
+
+const formattedNumberDE = number.toLocaleString('de-DE'); // 德语
+console.log(formattedNumberDE); // 输出: "1.234.567,89"
+```
+
+### 方法二：正则表达式
+
+如果你想自己实现千分化，可以使用正则表达式进行字符串替换：
+
+```javascript
+function formatNumberWithCommas(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+const number = 1234567.89;
+const formattedNumber = formatNumberWithCommas(number);
+console.log(formattedNumber); // 输出: "1,234,567.89"
+```
+
+### 方法三：自定义函数
+
+你也可以编写自定义函数来实现千分化，适用于更多自定义需求：
+
+```javascript
+function formatNumber(number, separator = ',') {
+  const [integerPart, decimalPart] = number.toString().split('.');
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+  return decimalPart ? `${formattedIntegerPart}.${decimalPart}` : formattedIntegerPart;
+}
+
+const number = 1234567.89;
+const formattedNumber = formatNumber(number);
+console.log(formattedNumber); // 输出: "1,234,567.89"
+```
+
+### 方法四：国际化 API（`Intl.NumberFormat`）
+
+`Intl.NumberFormat` 是现代浏览器中提供的国际化 API，能够更灵活地进行数字格式化：
+
+```javascript
+const number = 1234567.89;
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+const formattedNumber = formatter.format(number);
+console.log(formattedNumber); // 输出: "1,234,567.89"
+```
+
+你可以根据需要自定义格式化选项：
+
+```javascript
+const number = 1234567.89;
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  useGrouping: true,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2
+});
+
+const formattedNumber = formatter.format(number);
+console.log(formattedNumber); // 输出: "1,234,567.89"
+```
+
+### 总结
+
+- **`toLocaleString`**：最简单的方法，适用于大多数情况。
+- **正则表达式**：手动实现，适用于自定义需求。
+- **自定义函数**：适用于特定格式和复杂需求。
+- **`Intl.NumberFormat`**：现代浏览器中提供的国际化 API，更灵活和强大。
+
+选择合适的方法可以根据具体的需求和浏览器支持情况。
+
+
+
+为跨国客户检测网页端的报错需要一个全面的前端监控和日志收集系统。以下是一些常用的策略和工具，可以帮助你实现这一目标：
+
+### 使用第三方前端监控工具
+
+使用专业的前端监控和错误跟踪工具是最简单且有效的方式。这些工具通常提供详细的错误报告、用户会话回放、性能监控等功能，并且支持全球分布的用户。
+
+#### 常用工具：
+
+1. **Sentry**
+   - 实时错误捕获和报告。
+   - 支持源映射，可以追踪到源代码中的错误位置。
+   - 提供上下文信息，如用户信息、设备信息等。
+   - 支持团队协作，方便错误管理和修复。
+   - [Sentry 官网](https://sentry.io/)
+
+   ```javascript
+   // 安装 Sentry
+   npm install @sentry/browser
+   
+   // 初始化 Sentry
+   import * as Sentry from '@sentry/browser';
+   Sentry.init({ dsn: 'YOUR_DSN_HERE' });
+   
+   // 捕获错误
+   Sentry.captureException(new Error('Something went wrong'));
+   ```
+
+2. **LogRocket**
+   - 用户会话重放，帮助你重现错误。
+   - 捕获控制台日志、网络请求、DOM 变化等。
+   - 提供性能监控和分析。
+   - [LogRocket 官网](https://logrocket.com/)
+
+   ```javascript
+   // 安装 LogRocket
+   npm install logrocket
+   
+   // 初始化 LogRocket
+   import LogRocket from 'logrocket';
+   LogRocket.init('YOUR_APP_ID');
+   
+   // 捕获错误
+   LogRocket.captureException(new Error('Something went wrong'));
+   ```
+
+3. **New Relic**
+   - 综合性监控工具，支持前端和后端监控。
+   - 提供详细的性能和错误分析报告。
+   - [New Relic 官网](https://newrelic.com/)
+
+4. **TrackJS**
+   - 专注于 JavaScript 错误监控。
+   - 提供简单易用的 API 和详细的错误报告。
+   - [TrackJS 官网](https://trackjs.com/)
+
+   ```javascript
+   // 安装 TrackJS
+   npm install trackjs
+   
+   // 初始化 TrackJS
+   import TrackJS from 'trackjs';
+   TrackJS.install({ token: 'YOUR_TRACKJS_TOKEN' });
+   
+   // 捕获错误
+   TrackJS.track(new Error('Something went wrong'));
+   ```
+
+### 自定义前端监控
+
+如果你希望实现更定制化的监控解决方案，可以自行开发前端错误捕获和上报机制。
+
+#### 错误捕获与上报
+
+1. **全局错误捕获**：
+   ```javascript
+   window.onerror = function(message, source, lineno, colno, error) {
+     console.error(`Error: ${message}, Source: ${source}, Line: ${lineno}, Column: ${colno}, Error object: ${error}`);
+     sendErrorToServer({ message, source, lineno, colno, error });
+     return false; // 阻止浏览器默认错误提示
+   };
+   
+   window.addEventListener('unhandledrejection', function(event) {
+     console.error('Unhandled rejection:', event.reason);
+     sendErrorToServer({ message: event.reason });
+   });
+   ```
+
+2. **捕获特定区域的错误**：
+   ```javascript
+   try {
+     // 可能会抛出错误的代码
+   } catch (error) {
+     console.error('Caught an error:', error);
+     sendErrorToServer(error);
+   }
+   ```
+
+3. **自定义日志上报函数**：
+   ```javascript
+   function sendErrorToServer(error) {
+     fetch('https://your-server.com/log', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+         message: error.message,
+         stack: error.stack,
+         userAgent: navigator.userAgent,
+         url: window.location.href,
+         timestamp: new Date().toISOString()
+       })
+     }).catch(console.error);
+   }
+   ```
+
+### 捕获性能数据
+
+除了捕获错误，监控性能数据也很重要，尤其是对于跨国用户，可以通过 Performance API 捕获性能数据：
+
+```javascript
+window.addEventListener('load', function() {
+  const performanceTiming = window.performance.timing;
+  const loadTime = performanceTiming.loadEventEnd - performanceTiming.navigationStart;
+  sendPerformanceDataToServer(loadTime);
+});
+
+function sendPerformanceDataToServer(loadTime) {
+  fetch('https://your-server.com/performance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      loadTime,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      timestamp: new Date().toISOString()
+    })
+  }).catch(console.error);
+}
+```
+
+### 分析和处理日志
+
+无论你使用第三方工具还是自定义方案，日志的分析和处理都至关重要。以下是一些分析和处理日志的策略：
+
+1. **数据存储**：将错误日志存储在数据库中，以便后续分析和查询。
+2. **报警系统**：设置报警机制，当错误频率达到某个阈值时，自动发送警报邮件或通知。
+3. **定期报告**：生成定期的错误和性能报告，分析趋势和关键问题。
+4. **错误重现**：利用用户会话重放功能，重现用户遇到的问题，帮助定位和修复错误。
+
+通过结合以上策略和工具，你可以构建一个全面的前端监控系统，有效地检测和处理跨国客户的网页端错误，提高应用的稳定性和用户体验。
+
+
+
+在 JavaScript 中，`Promise` 是一种用于处理异步操作的机制。`Promise` 对象的 `then` 方法和 `catch` 方法都可以用于处理异步操作中的错误，但它们的用法和行为有所不同。具体来说，`then` 的第二个参数和 `catch` 方法在处理错误时有一些关键区别。
+
+### `then` 方法
+
+`then` 方法用于在 `Promise` 成功和失败时分别执行不同的回调函数。它接受两个参数：
+
+1. **第一个参数**：一个回调函数，在 `Promise` 成功（resolved）时执行。
+2. **第二个参数**：一个回调函数，在 `Promise` 失败（rejected）时执行。
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+  // 异步操作
+  if (/* 成功条件 */) {
+    resolve('成功的结果');
+  } else {
+    reject('失败的原因');
+  }
+});
+
+promise.then(
+  (result) => {
+    console.log('成功:', result);
+  },
+  (error) => {
+    console.log('失败:', error);
+  }
+);
+```
+
+### `catch` 方法
+
+`catch` 方法用于处理 `Promise` 失败（rejected）时的情况。它实际上是 `then` 方法的一个简化版本，专门用于处理 `Promise` 的失败情况。
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+  // 异步操作
+  if (/* 成功条件 */) {
+    resolve('成功的结果');
+  } else {
+    reject('失败的原因');
+  }
+});
+
+promise
+  .then((result) => {
+    console.log('成功:', result);
+  })
+  .catch((error) => {
+    console.log('失败:', error);
+  });
+```
+
+### 关键区别
+
+1. **语义上的不同**：
+   - `then` 的第二个参数：处理 `Promise` 失败的情况，语义上更倾向于与成功处理逻辑在一起。
+   - `catch` 方法：专门用于处理 `Promise` 失败的情况，语义上更清晰地表示错误处理。
+
+2. **链式调用的行为**：
+   - 当在 `then` 方法中使用第二个参数处理错误时，后续的 `then` 方法仍然会被执行，因为错误处理函数会返回一个新的 `Promise`，该 `Promise` 的状态是 `resolved`。
+   - 当使用 `catch` 方法处理错误时，错误处理函数同样会返回一个新的 `Promise`，但更容易理解其链式结构，即 `catch` 后的 `then` 方法处理的是 `catch` 处理后的结果。
+
+3. **代码可读性**：
+   - 使用 `catch` 方法可以将错误处理逻辑与成功处理逻辑分开，使代码更加清晰易读。
+   - 使用 `then` 的第二个参数处理错误，容易将成功和错误的处理混在一起，降低代码的可读性。
+
+### 示例对比
+
+#### 使用 `then` 的第二个参数
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+  // 异步操作
+  reject('失败的原因');
+});
+
+promise.then(
+  (result) => {
+    console.log('成功:', result);
+  },
+  (error) => {
+    console.log('失败:', error);
+  }
+).then(() => {
+  console.log('后续操作');
+});
+```
+
+#### 使用 `catch` 方法
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+  // 异步操作
+  reject('失败的原因');
+});
+
+promise
+  .then((result) => {
+    console.log('成功:', result);
+  })
+  .catch((error) => {
+    console.log('失败:', error);
+  })
+  .then(() => {
+    console.log('后续操作');
+  });
+```
+
+在这个例子中，使用 `catch` 方法使错误处理逻辑更加清晰，同时保证后续操作仍然会执行。推荐在处理 `Promise` 的错误时使用 `catch` 方法，这样代码更具可读性和维护性。
