@@ -1630,3 +1630,395 @@ promise
 ```
 
 在这个例子中，使用 `catch` 方法使错误处理逻辑更加清晰，同时保证后续操作仍然会执行。推荐在处理 `Promise` 的错误时使用 `catch` 方法，这样代码更具可读性和维护性。
+
+## 数组拍平
+
+### 方法 1：使用 `Array.prototype.flat()`
+
+从ES2019（ES10）开始，JavaScript引入了`flat()`方法，它可以拍平数组。默认情况下，它会拍平一层嵌套数组，但你可以通过传递深度参数来控制拍平的层数。
+
+```javascript
+javascript复制代码let arr = [1, [2, [3, [4, 5]]]];
+let flatArr = arr.flat(Infinity); // 传递 Infinity 来拍平所有嵌套数组
+console.log(flatArr); // 输出: [1, 2, 3, 4, 5]
+```
+
+### 方法 2：使用递归
+
+```javascript
+const flatten = function(arr){
+  while(arr.some(v=>Array.isArray(v))){
+    arr = [].concat(...arr);
+  }
+  return arr;
+}
+let arr = [1,2,[null,undefined],3,4,[4,5,[1,2,3],6]];
+console.log(flatten(arr));
+```
+
+### 方法 3：使用 `reduce()` 和递归
+
+`reduce()` 方法也可以用来拍平数组。
+
+```javascript
+function flattenArray(arr) {
+    return arr.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenArray(val)) : acc.concat(val), []);
+}
+
+let arr = [1, [2, [3, [4, 5]]]];
+let flatArr = flattenArray(arr);
+console.log(flatArr); // 输出: [1, 2, 3, 4, 5]
+```
+
+## Nginx如何设置CORS
+
+在Nginx中实现跨域（CORS，Cross-Origin Resource Sharing）需要配置服务器来允许指定的跨域请求。以下是一个详细的步骤和配置示例：
+
+### 步骤
+
+1. **找到并打开 Nginx 配置文件：**
+   - 主要配置文件通常位于 `/etc/nginx/nginx.conf`，但具体路径可能因系统和安装方式而异。
+   - 可以在服务器块（`server`）或位置块（`location`）中进行配置。
+
+2. **添加 CORS 配置：**
+   - 在对应的服务器块或位置块中，添加 CORS 相关的头部信息。
+
+### 示例配置
+
+以下是在 Nginx 配置文件中配置 CORS 的示例：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        # 允许所有来源的跨域请求
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+            add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+            add_header 'Access-Control-Max-Age' 86400;
+            add_header 'Content-Type' 'text/plain charset=UTF-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+
+        # 对于其他请求方法，允许跨域访问
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+
+        # 实际请求处理
+        proxy_pass http://backend_server;
+    }
+}
+```
+
+### 详细解释
+
+1. **`if ($request_method = 'OPTIONS')`：**
+   - 处理预检请求（Preflight Request），预检请求是由浏览器自动发起的 `OPTIONS` 请求，用于检查服务器是否允许特定的跨域请求。
+
+2. **`add_header 'Access-Control-Allow-Origin' '*'`：**
+   - 允许所有域的请求，通配符 `*` 表示任何域名。如果需要更严格的控制，可以将 `'*'` 替换为具体的域名。
+
+3. **`add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS'`：**
+   - 指定允许的 HTTP 方法，包括 `GET`、`POST` 和 `OPTIONS`。可以根据需求添加其他方法，如 `PUT`、`DELETE`。
+
+4. **`add_header 'Access-Control-Allow-Headers' ...`：**
+   - 指定允许的请求头。可以根据需要添加或删除头信息。
+
+5. **`add_header 'Access-Control-Expose-Headers' ...`：**
+   - 指定哪些响应头可以被客户端访问。
+
+6. **`add_header 'Access-Control-Max-Age' 86400`：**
+   - 设置预检请求的结果可以缓存的最大时间（以秒为单位），这里设置为一天（86400秒）。
+
+7. **`add_header 'Content-Type' 'text/plain charset=UTF-8'` 和 `add_header 'Content-Length' 0`：**
+   - 预检请求的响应头。
+
+8. **`return 204`：**
+   - 返回 204 状态码，表示预检请求成功，无内容返回。
+
+9. **`proxy_pass http://backend_server`：**
+   - 将实际的请求转发到后端服务器，可以根据具体的后端服务地址进行配置。
+
+### 重新加载 Nginx 配置
+
+配置完成后，需要重新加载 Nginx 配置使其生效：
+
+```bash
+sudo nginx -s reload
+```
+
+通过上述配置和步骤，Nginx 可以成功处理跨域请求，确保前端应用能够与后端服务进行跨域通信。如果有更复杂的需求，可以根据具体情况调整配置。
+
+
+
+## When do they fire?
+
+[`window.onload`](https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers.onload)
+
+- By default, it is fired when the entire page loads, **including** its content (images, CSS, scripts, etc.).
+
+In some browsers it now takes over the role of `document.onload` and fires when the DOM is ready as well.
+
+```
+document.onload
+```
+
+- It is called when the DOM is ready which can be **prior** to images and other external content is loaded.
+
+## How well are they supported?
+
+当整个页面，包括样式、图片和其他资源被加载完成时，会触发 `window` 对象上的 `load` 事件。可以通过 `onload` 属性获取此事件。
+
+下面的这个示例正确显示了图片大小，因为 `window.onload` 会等待所有图片加载完毕：
+
+- 当 DOM 准备就绪时，
+
+  ```
+  document
+  ```
+
+   
+
+  上的
+
+   
+
+  ```
+  DOMContentLoaded
+  ```
+
+   
+
+  事件就会被触发。在这个阶段，我们可以将 JavaScript 应用于元素。
+
+  - 诸如 `<script>...</script>` 或 `<script src="..."></script>` 之类的脚本会阻塞 `DOMContentLoaded`，浏览器将等待它们执行结束。
+  - 图片和其他资源仍然可以继续被加载。
+
+- 当页面和所有资源都加载完成时，`window` 上的 `load` 事件就会被触发。我们很少使用它，因为通常无需等待那么长时间。
+
+- 当用户想要离开页面时，`window` 上的 `beforeunload` 事件就会被触发。如果我们取消这个事件，浏览器就会询问我们是否真的要离开（例如，我们有未保存的更改）。
+
+- 当用户最终离开时，`window` 上的 `unload` 事件就会被触发。在处理程序中，我们只能执行不涉及延迟或询问用户的简单操作。正是由于这个限制，它很少被使用。我们可以使用 `navigator.sendBeacon` 来发送网络请求。
+
+- ```
+  document.readyState
+  ```
+
+   
+
+  是文档的当前状态，可以在
+
+   
+
+  ```
+  readystatechange
+  ```
+
+   
+
+  事件中跟踪状态更改：
+
+  - `loading` —— 文档正在被加载。
+  - `interactive` —— 文档已被解析完成，与 `DOMContentLoaded` 几乎同时发生，但是在 `DOMContentLoaded` 之前发生。
+  - `complete` —— 文档和资源均已加载完成，与 `window.onload` 几乎同时发生，但是在 `window.onload` 之前发生。
+
+确实，JavaScript中的`this`关键字有很多细微之处，它的行为取决于函数的调用方式。以下是一些关于`this`的重要概念和使用场景，帮助你更好地理解它的行为：
+
+### 1. 全局上下文中的 `this`
+
+在全局上下文中（即不在任何函数内部），`this`指向全局对象。在浏览器中，全局对象是`window`。
+
+```javascript
+console.log(this); // 在浏览器中输出: window
+```
+
+### 2. 函数上下文中的 `this`
+
+- **普通函数**：在非严格模式下，普通函数中的`this`指向全局对象`window`。在严格模式下，`this`为`undefined`。
+
+```javascript
+function myFunction() {
+  console.log(this);
+}
+myFunction(); // 非严格模式下输出: window, 严格模式下输出: undefined
+```
+
+- **方法调用**：当函数作为对象的方法调用时，`this`指向该对象。
+
+```javascript
+let obj = {
+  name: 'Alice',
+  greet: function() {
+    console.log(this.name);
+  }
+};
+obj.greet(); // 输出: Alice
+```
+
+- **构造函数**：当函数作为构造函数使用时，`this`指向新创建的对象。
+
+```javascript
+function Person(name) {
+  this.name = name;
+}
+let person = new Person('Bob');
+console.log(person.name); // 输出: Bob
+```
+
+### 3. 箭头函数中的 `this`
+
+箭头函数中的`this`是由其外部（定义时的作用域）决定的，而不是调用时的作用域。
+
+```javascript
+let obj = {
+  name: 'Alice',
+  greet: () => {
+    console.log(this.name);
+  }
+};
+obj.greet(); // 输出: undefined, 因为箭头函数的this指向定义时的作用域，即全局对象
+```
+
+### 4. `call`、`apply` 和 `bind` 方法
+
+这些方法可以显式地设置`this`的值。
+
+- **`call`**：调用一个函数，并指定`this`的值和参数。
+
+```javascript
+function greet(greeting) {
+  console.log(greeting + ', ' + this.name);
+}
+let person = { name: 'Alice' };
+greet.call(person, 'Hello'); // 输出: Hello, Alice
+```
+
+- **`apply`**：与`call`类似，但参数是以数组形式传入的。
+
+```javascript
+greet.apply(person, ['Hi']); // 输出: Hi, Alice
+```
+
+- **`bind`**：创建一个新函数，并绑定`this`的值和参数。
+
+```javascript
+let boundGreet = greet.bind(person);
+boundGreet('Hey'); // 输出: Hey, Alice
+```
+
+### 5. DOM 事件处理程序中的 `this`
+
+在事件处理程序中，`this`指向触发事件的元素。
+
+```javascript
+let button = document.createElement('button');
+button.textContent = 'Click me';
+button.onclick = function() {
+  console.log(this); // 输出: <button> 元素
+};
+document.body.appendChild(button);
+```
+
+### 6. ES6 类中的 `this`
+
+在类的方法中，`this`指向类的实例。
+
+```javascript
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+
+  greet() {
+    console.log(this.name);
+  }
+}
+
+let person = new Person('Alice');
+person.greet(); // 输出: Alice
+```
+
+理解`this`在不同上下文中的行为是掌握JavaScript编程的一个重要方面。希望这些示例能帮助你更好地理解和使用`this`。如果你有更多问题或需要进一步的解释，随时告诉我！
+
+
+
+## 职业规划
+
+在回答职业规划的问题时，你可以从短期、中期和长期三个方面来阐述你的职业目标，同时结合你对前端开发的热情和Shopee的具体情况。以下是一个示例回答：
+
+### 短期目标（1-2年）
+
+“在短期内，我希望能够迅速融入Shopee的团队，熟悉公司的开发流程和技术栈。我将积极学习和掌握最新的前端技术，提升自己的编码能力和解决问题的能力。同时，我也希望能够参与到一些重要项目中，积累实战经验。”
+
+### 中期目标（3-5年）
+
+“在中期，我希望能够在团队中担当更多的责任，可能是作为一个小组的技术负责人，带领团队完成一些关键项目。我希望能够在项目管理和团队协作方面有更多的实践和提升，并能够为团队成员提供指导和帮助。此外，我也计划在这个阶段深入研究前端技术的某些领域，如性能优化、用户体验设计等，成为这些方面的专家。”
+
+### 长期目标（5年以上）
+
+“在长期，我希望能够成为公司的前端技术专家，甚至是架构师，参与到公司的技术决策中，为公司的技术发展方向提供建议。我希望自己能够具备全面的技术视野，能够设计和优化公司的前端架构，提升整体开发效率和产品质量。同时，我也希望自己在行业内有一定的影响力，能够通过分享和交流，推动前端技术的发展。”
+
+### 结合Shopee的实际情况
+
+“我选择Shopee不仅是因为它在行业内的领导地位，更因为它提供了一个充满挑战和成长机会的平台。我相信在Shopee，我能够不断学习和提升，达成我的职业目标。同时，我也希望通过自己的努力，为Shopee的发展贡献一份力量。”
+
+这样的回答既展示了你的职业规划的清晰性和可行性，又表明了你对Shopee的认可和期待，同时也体现了你的职业抱负和对前端开发的热情。
+
+## 为什么加入
+
+在回答这个问题时，你可以结合Shopee的企业文化、发展前景以及你的个人职业目标，来展示你对公司的了解和兴趣。以下是一些参考答案：
+
+1. **公司背景和文化**：
+   - “我选择Shopee是因为它在东南亚电商市场上的领导地位，以及它快速增长的业务。Shopee的创新精神和以客户为中心的文化与我的职业价值观非常契合。”
+2. **个人发展和职业目标**：
+   - “Shopee提供了一个充满挑战和机会的工作环境，我希望在这里能够不断提升自己的专业技能，并为公司创造价值。同时，Shopee的全球化视野和多元化团队也是我希望加入的一个重要原因。”
+3. **公司对员工的重视**：
+   - “我了解到Shopee非常重视员工的成长和发展，提供了丰富的培训和发展机会。我希望在这样一个注重人才培养的公司工作，能够不断学习和进步。”
+4. **具体项目或成就**：
+   - “Shopee在技术创新和用户体验方面取得了显著成就，比如推出了一系列用户友好的功能和高效的物流体系，这些都让我对Shopee的未来充满信心。我希望能加入这样的团队，共同为用户提供更好的服务。”
+5. **行业前景**：
+   - “电商行业在未来有着巨大的发展潜力，尤其是在东南亚这样的快速增长市场。Shopee作为行业的领先者，有着广阔的发展前景，我希望能够参与并见证这个过程中公司的成长。”
+
+综合以上内容，你可以根据自己的实际情况和感受，进行适当的调整和补充，确保回答既体现出你的个人优势，又能展示你对Shopee的认同和期待。
+
+询问HR
+
+在HR面试的最后，通常HR会问你是否有任何问题。提出一些有深度且与公司文化、团队动态和你的职业发展相关的问题，可以展示你的兴趣和主动性。以下是一些你可以考虑的问题：
+
+1. **公司文化和价值观**：
+   - “您能分享一些关于Shopee的企业文化和核心价值观吗？在日常工作中，这些文化和价值观如何体现？”
+
+2. **团队和项目**：
+   - “我将加入的前端开发团队目前正在进行哪些有趣的项目或挑战？团队的合作和沟通方式是怎样的？”
+
+3. **职业发展和培训机会**：
+   - “Shopee为员工提供了哪些职业发展和培训机会？公司如何支持员工的职业成长？”
+
+4. **工作环境和氛围**：
+   - “您能描述一下Shopee的工作环境和氛围吗？公司是如何确保员工保持良好的工作与生活平衡的？”
+
+5. **对新员工的期望**：
+   - “对于加入Shopee的新员工，您有哪些期望和建议？在头几个月内，您认为新员工应该重点关注哪些方面？”
+
+6. **公司未来的发展**：
+   - “您如何看待Shopee在未来几年的发展和成长？公司有哪些长期战略目标？”
+
+7. **员工福利和支持**：
+   - “Shopee为员工提供哪些福利和支持措施？公司在员工的身心健康和福利方面有什么特别的举措吗？”
+
+8. **绩效评估和反馈机制**：
+   - “公司是如何进行绩效评估的？员工在工作中如何获得及时的反馈和指导？”
+
+这些问题不仅能够帮助你更好地了解Shopee的工作环境和公司文化，还能展示你对公司的兴趣和认真态度。选择你最关心的问题，并根据HR的回答，继续深入交流，这样的互动也会让HR对你有更深刻的印象。
+
+## 你最成功的一件事？
+
+我最成功的一件事我觉得是我跟着教程自己开发了一个网页，可以实现大家注册登录，然后分享自己喜欢的露营地点，然后还可以在地图上展示出集中的露营地点，然后用户可以评分，然后可以发表评论，我觉得很有成就感。
+
