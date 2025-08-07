@@ -7,6 +7,7 @@ image:
     alt: "Thumbnail of Astro arcs."
 pubDate: 2024-05-16
 tags: ["astro", "blogging", "learning in public", "successes"]
+layout: ../../layouts/MarkdownLayout.astro
 ---
 ```javascript
 function Foo(name,age){

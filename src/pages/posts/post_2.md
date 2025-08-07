@@ -7,5 +7,6 @@ image:
     alt: "Thumbnail of Astro arcs."
 pubDate: 2024-04-29
 tags: ["astro", "blogging", "learning in public", "successes"]
+layout: ../../layouts/MarkdownLayout.astro
 ---
 After a successful first week learning Astro, I decided to try some more. I wrote and imported a small component from memory!
